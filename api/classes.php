@@ -13,6 +13,8 @@ class Element
         /* this conversion also validates data format */
         if (isset($data->name) && isset($data->listed))
         {
+            if($data->name == "")
+                die("error one name is empty");
             $this->name = $data->name;
             $this->listed = $data->listed;
         }

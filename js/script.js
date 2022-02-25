@@ -72,6 +72,8 @@ function WriterFunc() {
 
 function AddItem() {
     var name = $('#adding').val();
+    if (!name)
+        return;
     element = { name: name, listed: true };
     itemlist.unshift(element);
     $.ajax({
