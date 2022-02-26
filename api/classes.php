@@ -1,6 +1,9 @@
 <?php
 
 const MYLIST = "list.json";
+const REQUIRECOOKIES = false;  // Set to true if you want to require registration
+const COOKIENAME = "";         // Set cookie name if REQUIRECOOKIES = true
+const COOKIEVALUE = "";        // Set cookie value if REQUIRECOOKIES = true
 
 
 class Element
@@ -13,7 +16,7 @@ class Element
         /* this conversion also validates data format */
         if (isset($data->name) && isset($data->listed))
         {
-            if($data->name == "")
+            if ($data->name == "")
                 die("error one name is empty");
             $this->name = $data->name;
             $this->listed = $data->listed;
@@ -39,7 +42,7 @@ class Element
 
 class Filer
 {
-    private static function CheckFile()
+    private static function CheckFile(): void
     {
         $myfile = fopen(MYLIST, "r");
         if (!$myfile)
@@ -49,20 +52,20 @@ class Filer
         fclose($myfile);
     }
 
-    public static function ReadJson()
+    public static function ReadJson(): string
     {
         self::CheckFile();
         $contentJSON = file_get_contents(MYLIST);
         return $contentJSON;
     }
 
-    public static function ReadElements()
+    public static function ReadElements(): array // of Element
     {
         $content = json_decode(self::ReadJson());
         return Element::ToElementArray($content);
     }
 
-    public static function Add(Element $el)
+    public static function Add(Element $el): void
     {
         $content = self::ReadElements();
         array_unshift($content, $el);
@@ -73,7 +76,7 @@ class Filer
         fclose($myfile);
     }
 
-    public static function WriteAll(string $jsonstring)
+    public static function WriteAll(string $jsonstring): void
     {
         /* 
         Decoding and re-encoding json string for 2 reasons:
@@ -89,5 +92,14 @@ class Filer
         if (!fwrite($myfile, $jsonpretty))
             die("error writing file");
         fclose($myfile);
+    }
+}
+
+class CookieCheck
+{
+    public static function Check(): void
+    {
+        if (REQUIRECOOKIES && (!isset($_COOKIE[COOKIENAME]) || $_COOKIE[COOKIENAME] != COOKIEVALUE))
+            die("Access denied");
     }
 }

@@ -1,4 +1,6 @@
 <?php
+require_once(__DIR__ . "/classes.php");
+CookieCheck::Check();
 echo '
 <pre>
 API USAGE
