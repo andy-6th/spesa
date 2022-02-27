@@ -10,6 +10,7 @@ CookieCheck::Check();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista della spesa</title>
 
+    <link rel="icon" type="image/png" href="cart32.png">
     <link href="css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <link href="css/bootstrap-icons.css" rel="stylesheet">
     <script src="js/jquery.min.js"></script>
