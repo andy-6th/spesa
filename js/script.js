@@ -4,7 +4,7 @@ const MAXSTR = 27;
 
 $('document').ready(function () {
     QueryData();
-    setInterval(QueryData, 30000);
+    setInterval(QueryData, 15000);
     $("form").on('submit', function (e) {
         e.preventDefault();
         AddItem();
