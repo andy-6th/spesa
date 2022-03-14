@@ -4,9 +4,9 @@ CookieCheck::Check();
 
 $post = $_GET;
 
-$name = isset($post['name']) ? $post['name'] : die("error missing name");
+$name = isset($post['name']) ? $post['name'] : die("error: missing parameter: name");
 if ($name == "")
-    die("error empty item name");
+    die("error: empty item name");
 
 $el = new Element();
 $el->name = $name;

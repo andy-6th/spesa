@@ -17,7 +17,7 @@ class Element
         if (isset($data->name) && isset($data->listed))
         {
             if ($data->name == "")
-                die("error: one name is empty");
+                die("error: empty item name");
             $this->name = $data->name;
             $this->listed = $data->listed;
         }
@@ -25,14 +25,17 @@ class Element
             die("error: wrong element format");
     }
 
-    public static function ToElementArray(array $content)
+    public static function ToElementArray($content)
     {
         $retarray = array();
-        foreach ($content as $value)
+        if (is_array($content))
         {
-            $el = new Element();
-            $el->set($value);
-            array_push($retarray, $el);
+            foreach ($content as $value)
+            {
+                $el = new Element();
+                $el->set($value);
+                array_push($retarray, $el);
+            }
         }
         return $retarray;
     }
@@ -67,6 +70,12 @@ class Filer
     public static function Add(Element $el): void
     {
         $content = self::ReadElements();
+        // Duplicate check
+        foreach ($content as $element)
+        {
+            if (strtolower($el->name) == strtolower($element->name) && $element->listed)
+                die("warning: item already listed");
+        }
         array_unshift($content, $el);
         $jsonstring = json_encode($content, JSON_PRETTY_PRINT);
         $myfile = fopen(MYLIST, "w") or die("error opening file");

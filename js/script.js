@@ -17,8 +17,10 @@ function QueryData() {
         url: "api/get",
         type: "GET",
         success: function (data) {
-            itemlist = JSON.parse(data);
-            ShowData(itemlist);
+            if (data) {
+                itemlist = JSON.parse(data);
+                ShowData(itemlist);
+            }
         },
         error: function (err) {
             console.log(err);
@@ -75,7 +77,6 @@ function AddItem() {
     if (!name)
         return;
     element = { name: name, listed: true };
-    itemlist.unshift(element);
     $.ajax({
         url: "api/add",
         type: "GET",
@@ -85,9 +86,12 @@ function AddItem() {
         success: function (data) {
             if (data === "OK") {
                 $('#adding').val('');
+                itemlist.unshift(element);
                 ShowData(itemlist);
-            }
-            else {
+            } else if (data === "warning: item already listed") {
+                $('#adding').val('');
+                console.log(data);
+            } else {
                 console.log(data);
                 ShowError(data);
             }
@@ -119,9 +123,11 @@ function RemoveItem(index) {
 }
 
 function CutString(str) {
-    if (str.length >= MAXLEN)
-        return (str.slice(0, MAXSTR) + "...");
-    else return str;
+    if (str !== undefined) {
+        if (str.length >= MAXLEN)
+            return (str.slice(0, MAXSTR) + "...");
+        else return str;
+    }
 }
 
 function ShowError(text) {
