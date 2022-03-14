@@ -100,12 +100,16 @@ function AddItem() {
 
 function BuyItem(index) {
     itemlist[index].listed = false;
+    var els = itemlist.splice(index, 1);
+    itemlist.unshift(els[0]);
     WriterFunc();
 }
 
 
 function ResumeItem(index) {
     itemlist[index].listed = true;
+    var els = itemlist.splice(index, 1);
+    itemlist.unshift(els[0]);
     WriterFunc();
 }
 
