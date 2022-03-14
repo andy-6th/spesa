@@ -17,13 +17,12 @@ class Element
         if (isset($data->name) && isset($data->listed))
         {
             if ($data->name == "")
-                die("error one name is empty");
+                die("error: one name is empty");
             $this->name = $data->name;
             $this->listed = $data->listed;
         }
         else
             die("error: wrong element format");
-        // foreach ($data as $key => $value) $this->{$key} = $value;
     }
 
     public static function ToElementArray(array $content)
