@@ -6,5 +6,5 @@ $post = $_GET;
 
 if (!isset($post["jsonstring"])) die("input error");
 
-Filer::WriteAll($post["jsonstring"]);
+Filer::WriteAllJson($post["jsonstring"]);
 echo "OK";

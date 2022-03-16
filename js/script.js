@@ -38,14 +38,14 @@ function ShowData(data) {
         if (element.listed) {
             toptable.append($('<tr>')
                 .append($('<td>').html(CutString(element.name)))
-                .append($('<td class="text-center">').html('<a class="btn btn-success" href="#" onclick="BuyItem(' + index + ')"><i class="bi bi-cart-check"></i></a>'))
+                .append($('<td class="text-center">').html('<a class="btn btn-success" href="#" onclick="ShiftItem(' + index + ')"><i class="bi bi-cart-check"></i></a>'))
             );
         }
         else {
             bottomtable.append($('<tr>')
                 .append($('<td>').html(CutString(element.name)))
                 .append($('<td class="text-center">')
-                    .html('<a class="btn btn-warning" href="#" onclick="ResumeItem(' + index + ')"><i class="bi bi-cart-plus"></i></i></a> <a class="btn btn-danger" href="#" onclick="RemoveItem(' + index + ')"><i class="bi bi-trash"></i></a>'))
+                    .html('<a class="btn btn-warning" href="#" onclick="ShiftItem(' + index + ')"><i class="bi bi-cart-plus"></i></i></a> <a class="btn btn-danger" href="#" onclick="RemoveItem(' + index + ')"><i class="bi bi-trash"></i></a>'))
             );
         }
         index++;
@@ -102,24 +102,53 @@ function AddItem() {
     });
 }
 
-function BuyItem(index) {
-    itemlist[index].listed = false;
-    var els = itemlist.splice(index, 1);
-    itemlist.unshift(els[0]);
-    WriterFunc();
-}
-
-
-function ResumeItem(index) {
-    itemlist[index].listed = true;
-    var els = itemlist.splice(index, 1);
-    itemlist.unshift(els[0]);
-    WriterFunc();
+function ShiftItem(index) {
+    const url = itemlist[index].listed ? "api/buy" : "api/res";
+    $.ajax({
+        url: url,
+        type: "GET",
+        data: {
+            name: itemlist[index].name
+        },
+        success: function (data) {
+            if (data !== "OK") {
+                console.log(data);
+                ShowError(data);
+            } else {
+                // Preserve the element at the top of the switched list.
+                // Update executed without requiring data retrieval from server.
+                itemlist[index].listed = !itemlist[index].listed;
+                var els = itemlist.splice(index, 1);
+                itemlist.unshift(els[0]);
+                ShowData(itemlist);
+            }
+        },
+        error: function (err) {
+            console.log(err);
+        }
+    });
 }
 
 function RemoveItem(index) {
-    itemlist.splice(index, 1);
-    WriterFunc();
+    $.ajax({
+        url: "api/del",
+        type: "GET",
+        data: {
+            name: itemlist[index].name
+        },
+        success: function (data) {
+            if (data !== "OK") {
+                console.log(data);
+                ShowError(data);
+            } else {
+                var els = itemlist.splice(index, 1);
+                ShowData(itemlist);
+            }
+        },
+        error: function (err) {
+            console.log(err);
+        }
+    });
 }
 
 function CutString(str) {

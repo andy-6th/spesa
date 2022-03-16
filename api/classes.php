@@ -67,39 +67,80 @@ class Filer
         return Element::ToElementArray($content);
     }
 
-    public static function Add(Element $el): void
+    public static function Add(string $name): string
     {
         $content = self::ReadElements();
         // Duplicate check
-        foreach ($content as $element)
-        {
-            if (strtolower($el->name) == strtolower($element->name) && $element->listed)
-                die("warning: item already listed");
-        }
+        if (Filer::Find($content, $name))
+            die("warning: item already listed");
+        $el = new Element;
+        $el->name = $name;
         array_unshift($content, $el);
-        $jsonstring = json_encode($content, JSON_PRETTY_PRINT);
-        $myfile = fopen(MYLIST, "w") or die("error opening file");
-        if (!fwrite($myfile, $jsonstring))
-            die("error writing file");
-        fclose($myfile);
+        return Filer::WriteAll($content);
     }
 
-    public static function WriteAll(string $jsonstring): void
+    /* Buy an item ($buy = true) or resume it from backup list ($buy = false) */
+    public static function Shift(string $name, bool $buy): string
     {
-        /* 
-        Decoding and re-encoding json string for 2 reasons:
-            1 - data validation;
-            2 - prettify json.
-        */
-        $myarray = json_decode($jsonstring);
+        $content = self::ReadElements();
+        // Duplicate check
+        if ($element = Filer::Find($content, $name, $buy))
+        {
+            $i = array_search($element, $content);
+            array_splice($content, $i, 1);
+            $element->listed = !$buy;
+            array_unshift($content, $element);
+            return Filer::WriteAll($content);
+        }
+        else
+            die("error: item not found");
+    }
+
+    public static function Remove(string $name): string
+    {
+        $content = self::ReadElements();
+        // Duplicate check
+        if ($element = Filer::Find($content, $name, false))
+        {
+            $i = array_search($element, $content);
+            array_splice($content, $i, 1);
+            return Filer::WriteAll($content);
+        }
+        else
+            die("error: item not found");
+    }
+
+    public static function Find(array $content, string $name, bool $listed = true): ?Element
+    {
+        foreach ($content as &$element)
+        {
+            if (strtolower($name) == strtolower($element->name) && $element->listed == $listed)
+                return $element;
+        }
+        return null;
+    }
+
+    public static function WriteAll($myarray): string
+    {
         if (!is_array($myarray))
             die("error: array expected");
-        $content = Element::ToElementArray($myarray);
+        return Filer::WriteAllJson(json_encode($myarray));
+    }
+
+    public static function WriteAllJson(string $jsonstring): string
+    {
+        // Content check
+        $content = json_decode($jsonstring);
+        if (!is_array($content))
+            die("error: json content is not an array");
+        // Prettify
         $jsonpretty = json_encode($content, JSON_PRETTY_PRINT);
+        // Write file
         $myfile = fopen(MYLIST, "w") or die("error opening file");
         if (!fwrite($myfile, $jsonpretty))
             die("error writing file");
         fclose($myfile);
+        return $jsonpretty;
     }
 }
 

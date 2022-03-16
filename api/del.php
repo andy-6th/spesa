@@ -8,6 +8,6 @@ $name = isset($post['name']) ? $post['name'] : die("error: missing parameter: na
 if ($name == "")
     die("error: empty item name");
 
-Filer::Add($name);
+Filer::Remove($name);
 
 echo "OK";
