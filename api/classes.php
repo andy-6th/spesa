@@ -6,41 +6,6 @@ const COOKIENAME = "";         // Set cookie name if REQUIRECOOKIES = true
 const COOKIEVALUE = "";        // Set cookie value if REQUIRECOOKIES = true
 
 
-class Element
-{
-    public $name = "";
-    public $listed = true;
-
-    public function set($data)
-    {
-        /* this conversion also validates data format */
-        if (isset($data->name) && isset($data->listed))
-        {
-            if ($data->name == "")
-                die("error: empty item name");
-            $this->name = $data->name;
-            $this->listed = $data->listed;
-        }
-        else
-            die("error: wrong element format");
-    }
-
-    public static function ToElementArray($content)
-    {
-        $retarray = array();
-        if (is_array($content))
-        {
-            foreach ($content as $value)
-            {
-                $el = new Element();
-                $el->set($value);
-                array_push($retarray, $el);
-            }
-        }
-        return $retarray;
-    }
-}
-
 
 class Filer
 {
@@ -64,7 +29,7 @@ class Filer
     public static function ReadElements(): array // of Element
     {
         $content = json_decode(self::ReadJson());
-        return Element::ToElementArray($content);
+        return $content;
     }
 
     public static function Add(string $name): string
@@ -73,8 +38,9 @@ class Filer
         // Duplicate check
         if (Filer::Find($content, $name))
             die("warning: item already listed");
-        $el = new Element;
+        $el = new stdClass;
         $el->name = $name;
+        $el->listed = true;
         array_unshift($content, $el);
         return Filer::WriteAll($content);
     }
@@ -110,7 +76,7 @@ class Filer
             die("error: item not found");
     }
 
-    public static function Find(array $content, string $name, bool $listed = true): ?Element
+    public static function Find(array $content, string $name, bool $listed = true): ?Object
     {
         foreach ($content as &$element)
         {
