@@ -1,4 +1,6 @@
-var itemlist = Array();
+var itemlist = Array();  // must be global
+const REMOVEAPI = 'del'; // must match the backend API call for deletion
+/* Editable parameters follow */
 const MAXLEN = 30;
 const MAXSTR = 27;
 
@@ -12,22 +14,6 @@ $('document').ready(function () {
     $('#mymodal').modal();
 });
 
-function QueryData() {
-    $.ajax({
-        url: "api/get",
-        type: "GET",
-        success: function (data) {
-            if (data) {
-                itemlist = JSON.parse(data);
-                ShowData(itemlist);
-            }
-        },
-        error: function (err) {
-            console.log(err);
-        }
-    });
-}
-
 function ShowData(data) {
     toptable = $('#toptable tbody');
     bottomtable = $('#bottomtable tbody');
@@ -38,32 +24,32 @@ function ShowData(data) {
         if (element.listed) {
             toptable.append($('<tr>')
                 .append($('<td>').html(CutString(element.name)))
-                .append($('<td class="text-center">').html('<a class="btn btn-success" href="#" onclick="ShiftItem(' + index + ')"><i class="bi bi-cart-check"></i></a>'))
+                .append($('<td class="text-center">').html('<a class="btn btn-success" href="#" onclick="BuyResumeRemove(' + index + ')"><i class="bi bi-cart-check"></i></a>'))
             );
         }
         else {
             bottomtable.append($('<tr>')
                 .append($('<td>').html(CutString(element.name)))
                 .append($('<td class="text-center">')
-                    .html('<a class="btn btn-warning" href="#" onclick="ShiftItem(' + index + ')"><i class="bi bi-cart-plus"></i></i></a> <a class="btn btn-danger" href="#" onclick="RemoveItem(' + index + ')"><i class="bi bi-trash"></i></a>'))
+                    .html('<a class="btn btn-warning" href="#" onclick="BuyResumeRemove(' + index + ')"><i class="bi bi-cart-plus"></i></i></a> <a class="btn btn-danger" href="#" onclick="BuyResumeRemove(' + index + ', ' + '\'' + REMOVEAPI + '\')"><i class="bi bi-trash"></i></a>'))
             );
         }
         index++;
     });
 }
 
-function WriterFunc() {
-    ShowData(itemlist);
+/*************
+ * API CALLS
+ *************/
+
+ function QueryData() {
     $.ajax({
-        url: "api/set",
+        url: "api/get",
         type: "GET",
-        data: {
-            jsonstring: JSON.stringify(itemlist)
-        },
         success: function (data) {
-            if (data !== "OK") {
-                console.log(data);
-                ShowError(data);
+            if (data) {
+                itemlist = JSON.parse(data);
+                ShowData(itemlist);
             }
         },
         error: function (err) {
@@ -102,8 +88,12 @@ function AddItem() {
     });
 }
 
-function ShiftItem(index) {
-    const url = itemlist[index].listed ? "api/buy" : "api/res";
+function BuyResumeRemove(index, action) {
+    // Define action
+    if (!action)
+        action = itemlist[index].listed ? "buy" : "res";
+    const url = "api/" + action;
+
     $.ajax({
         url: url,
         type: "GET",
@@ -117,9 +107,11 @@ function ShiftItem(index) {
             } else {
                 // Preserve the element at the top of the switched list.
                 // Update executed without requiring data retrieval from server.
-                itemlist[index].listed = !itemlist[index].listed;
                 var els = itemlist.splice(index, 1);
-                itemlist.unshift(els[0]);
+                if (action !== "del") {
+                    els[0].listed = !els[0].listed;
+                    itemlist.unshift(els[0]);
+                }
                 ShowData(itemlist);
             }
         },
@@ -129,27 +121,9 @@ function ShiftItem(index) {
     });
 }
 
-function RemoveItem(index) {
-    $.ajax({
-        url: "api/del",
-        type: "GET",
-        data: {
-            name: itemlist[index].name
-        },
-        success: function (data) {
-            if (data !== "OK") {
-                console.log(data);
-                ShowError(data);
-            } else {
-                var els = itemlist.splice(index, 1);
-                ShowData(itemlist);
-            }
-        },
-        error: function (err) {
-            console.log(err);
-        }
-    });
-}
+/*************
+ * UTILITIES
+ *************/
 
 function CutString(str) {
     if (str !== undefined) {
