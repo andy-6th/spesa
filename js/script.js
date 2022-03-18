@@ -42,14 +42,19 @@ function ShowData(data) {
  * API CALLS
  *************/
 
- function QueryData() {
+function QueryData() {
     $.ajax({
         url: "api/get",
         type: "GET",
         success: function (data) {
             if (data) {
-                itemlist = JSON.parse(data);
-                ShowData(itemlist);
+                response = JSON.parse(data);
+                if (response.response) {
+                    itemlist = JSON.parse(response.response);
+                    ShowData(itemlist);
+                } else if (response.error) {
+                    ShowError(response.error);
+                }
             }
         },
         error: function (err) {
@@ -70,16 +75,17 @@ function AddItem() {
             name: name
         },
         success: function (data) {
-            if (data === "OK") {
+            const response = JSON.parse(data);
+            if (response.response === "OK") {
                 $('#adding').val('');
                 itemlist.unshift(element);
                 ShowData(itemlist);
-            } else if (data === "warning: item already listed") {
+            } else if (response.error === "warning: item already listed") {
                 $('#adding').val('');
                 console.log(data);
             } else {
-                console.log(data);
-                ShowError(data);
+                console.log(response.error);
+                ShowError(response.error);
             }
         },
         error: function (err) {
@@ -101,10 +107,8 @@ function BuyResumeRemove(index, action) {
             name: itemlist[index].name
         },
         success: function (data) {
-            if (data !== "OK") {
-                console.log(data);
-                ShowError(data);
-            } else {
+            const response = JSON.parse(data);
+            if (response.response === "OK") {
                 // Preserve the element at the top of the switched list.
                 // Update executed without requiring data retrieval from server.
                 var els = itemlist.splice(index, 1);
@@ -113,6 +117,9 @@ function BuyResumeRemove(index, action) {
                     itemlist.unshift(els[0]);
                 }
                 ShowData(itemlist);
+            } else if (response.error) {
+                console.log(response.error);
+                ShowError(response.error);
             }
         },
         error: function (err) {

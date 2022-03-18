@@ -9,26 +9,31 @@ const COOKIEVALUE = "";        // Set cookie value if REQUIRECOOKIES = true
 
 class Filer
 {
-    private static function CheckFile(): void
-    {
-        $myfile = fopen(MYLIST, "r");
-        if (!$myfile)
-        {
-            $myfile = fopen(MYLIST, "x") or die("error creating file");
-        }
-        fclose($myfile);
-    }
-
     public static function ReadJson(): string
     {
-        self::CheckFile();
         $contentJSON = file_get_contents(MYLIST);
+        if (!$contentJSON)
+        {
+            if (!file_exists(MYLIST))
+            {
+                $myfile = fopen(MYLIST, "x");
+                if (!$myfile) throw new Exception("error creating file");
+                fclose($myfile);
+                $contentJSON = [];
+            }
+            else
+                throw new Exception("error reading file");
+        }
         return $contentJSON;
     }
 
     public static function ReadElements(): array // of Element
     {
         $content = json_decode(self::ReadJson());
+        if (!$content)
+            throw new Exception("error malformed json");
+        if (!is_array($content))
+            throw new Exception("error bad data");
         return $content;
     }
 
@@ -37,7 +42,7 @@ class Filer
         $content = self::ReadElements();
         // Duplicate check
         if (Filer::Find($content, $name))
-            die("warning: item already listed");
+            throw new Exception("warning: item already listed");
         $el = new stdClass;
         $el->name = $name;
         $el->listed = true;
@@ -116,5 +121,15 @@ class CookieCheck
     {
         if (REQUIRECOOKIES && (!isset($_COOKIE[COOKIENAME]) || $_COOKIE[COOKIENAME] != COOKIEVALUE))
             die("Access denied");
+    }
+}
+
+class Responder
+{
+    public $error = NULL;
+    public $response = NULL;
+    public function toJSON()
+    {
+        return json_encode($this);
     }
 }

@@ -4,10 +4,28 @@ CookieCheck::Check();
 
 $post = $_GET;
 
-$name = isset($post['name']) ? $post['name'] : die("error: missing parameter: name");
-if ($name == "")
-    die("error: empty item name");
+$res = new Responder;
 
-Filer::Shift($name, true);
+if (isset($post['name']))
+{
+    $name = $post['name'];
+    if ($name == "")
+        $res->error = "error: empty item name";
+}
+else
+    $res->error = "error: missing parameter: name";
 
-echo "OK";
+if (!$res->error)
+{
+    try
+    {
+        Filer::Shift($name, true);
+        $res->response = "OK";
+    }
+    catch (Exception $ex)
+    {
+        $res->error = $ex->getMessage();
+    }
+}
+
+echo $res->toJSON();
