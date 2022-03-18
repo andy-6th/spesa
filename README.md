@@ -14,7 +14,7 @@ Note that you can't have duplicates in the main list, while duplicate entries co
 This app runs on Apache server with PHP version 7.2 or above, and .htaccess file enabled. If you're not familiar with how to enable .htaccess, try a Google search. If you're lazy, you can find an example here https://www.linode.com/docs/guides/how-to-set-up-htaccess-on-apache/.
 If you want to run the app on a different server (i.e. Nginx), please substitute the .htaccess file with appropriate configuration. Basically, the provided .htaccess file rewrites URLs without the trailing ".php" extension: that's actually the only rule needed to make things work. Other rules were added for completeness sake, but they are not fundamental.
 ### Install SPESA&copy; ###
-Just copy the repository content in a folder of your choice under your HTTP/HTTPS server root. You'll be able to reach the app at the address 
+Just copy the repository content in a folder of your choice under your HTTP/HTTPS server root. Please remember to chown the whole directory to the http server user (usually www-data:www-data). You'll be able to reach the app at the address 
 `http(s)://your.server.address/chosen-folder`.
 ## Registration mode ##
 If you think your app URL is too "public" and easily reachable by unwanted users, a very simple _registration_ mode can be set. It's just a silly expedient that sets a minumum level of access filtering using cookies. 
