@@ -7,10 +7,11 @@ $res = new Responder;
 try
 {
     $str = Filer::ReadJson();
-    $res->response = $str;
+    $res->response = json_decode($str);
 }
 catch (Exception $ex)
 {
     $res->error = $ex->getMessage();
 }
+header('Content-Type: application/json; charset=utf-8');
 echo $res->toJSON();

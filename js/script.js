@@ -48,11 +48,10 @@ function QueryData() {
         type: "GET",
         success: function (data) {
             if (data) {
-                response = JSON.parse(data);
-                if (response.response) {
-                    itemlist = JSON.parse(response.response);
+                if (data.response) {
+                    itemlist = data.response;
                     ShowData(itemlist);
-                } else if (response.error) {
+                } else if (data.error) {
                     ShowError(response.error);
                 }
             }

@@ -18,6 +18,7 @@ class Filer
             {
                 $myfile = fopen(MYLIST, "x");
                 if (!$myfile) throw new Exception("error creating file");
+                self::WriteAll([]);
                 fclose($myfile);
                 $contentJSON = [];
             }
@@ -64,7 +65,7 @@ class Filer
             return Filer::WriteAll($content);
         }
         else
-            die("error: item not found");
+            throw new Exception("error: item not found");
     }
 
     public static function Remove(string $name): string
@@ -78,7 +79,7 @@ class Filer
             return Filer::WriteAll($content);
         }
         else
-            die("error: item not found");
+            throw new Exception("error: item not found");
     }
 
     public static function Find(array $content, string $name, bool $listed = true): ?Object
@@ -94,24 +95,17 @@ class Filer
     public static function WriteAll($myarray): string
     {
         if (!is_array($myarray))
-            die("error: array expected");
+            throw new Exception("error: array expected");
         return Filer::WriteAllJson(json_encode($myarray));
     }
 
     public static function WriteAllJson(string $jsonstring): string
     {
-        // Content check
-        $content = json_decode($jsonstring);
-        if (!is_array($content))
-            die("error: json content is not an array");
-        // Prettify
-        $jsonpretty = json_encode($content, JSON_PRETTY_PRINT);
-        // Write file
         $myfile = fopen(MYLIST, "w") or die("error opening file");
-        if (!fwrite($myfile, $jsonpretty))
-            die("error writing file");
+        if (!fwrite($myfile, $jsonstring))
+            throw new Exception("error writing file");
         fclose($myfile);
-        return $jsonpretty;
+        return $jsonstring;
     }
 }
 
