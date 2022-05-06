@@ -14,112 +14,82 @@ $('document').ready(function () {
     $('#mymodal').modal();
 });
 
-function ShowData(data) {
+function ShowData () {
     toptable = $('#toptable tbody');
     bottomtable = $('#bottomtable tbody');
     toptable.empty();
     bottomtable.empty();
     index = 0;
-    data.forEach(element => {
+    itemlist.forEach(element => {
         if (element.listed) {
             toptable.append($('<tr>')
                 .append($('<td>').html(CutString(element.name)))
-                .append($('<td class="text-center">').html('<a class="btn btn-success" href="#" onclick="BuyResumeRemove(' + index + ')"><i class="bi bi-cart-check"></i></a>'))
+                .append($('<td class="text-center">').html('<a class="btn btn-success" href="#" onclick="BuyRemove(' + index + ')"><i class="bi bi-cart-check"></i></a>'))
             );
         }
         else {
             bottomtable.append($('<tr>')
                 .append($('<td>').html(CutString(element.name)))
                 .append($('<td class="text-center">')
-                    .html('<a class="btn btn-warning" href="#" onclick="BuyResumeRemove(' + index + ')"><i class="bi bi-cart-plus"></i></i></a> <a class="btn btn-danger" href="#" onclick="BuyResumeRemove(' + index + ', ' + '\'' + REMOVEAPI + '\')"><i class="bi bi-trash"></i></a>'))
+                    .html('<a class="btn btn-warning" href="#" onclick="CallAPI(\'api/add\', \'' + element.name + '\')"><i class="bi bi-cart-plus"></i></i></a> <a class="btn btn-danger" href="#" onclick="BuyRemove(' + index + ', ' + '\'' + REMOVEAPI + '\')"><i class="bi bi-trash"></i></a>'))
             );
         }
         index++;
     });
 }
 
+function RefreshData (data) {
+    itemlist = data;
+    ShowData();
+}
+
+function HandleResponse (data) {
+    if (data.error) {
+        if (data.error === "warning: item already listed") {
+            $('#adding').val('');
+            console.log(data);
+        } else {
+            ShowError(data.error);
+        }
+    } else if (data.response) {
+        RefreshData(data.response);
+    }
+}
+
 /*************
  * API CALLS
  *************/
 
-function QueryData() {
-    $.ajax({
-        url: "api/get",
-        type: "GET",
-        success: function (data) {
-            if (data) {
-                if (data.response) {
-                    itemlist = data.response;
-                    ShowData(itemlist);
-                } else if (data.error) {
-                    ShowError(response.error);
-                }
-            }
-        },
-        error: function (err) {
-            console.log(err);
-        }
-    });
+function QueryData () {
+    CallAPI("api/get", undefined);
 }
 
-function AddItem() {
+function AddItem () {
     var name = $('#adding').val();
     if (!name)
         return;
-    element = { name: name, listed: true };
+    url = "api/add";
+    CallAPI(url, name);
+}
+
+function BuyRemove (index, action) {
+    // Define action
+    if (!action)
+        action = "buy";
+    const url = "api/" + action;
+    const name = itemlist[index].name;
+    CallAPI(url, name);
+}
+
+function CallAPI (url, name) {
     $.ajax({
-        url: "api/add",
+        url: url,
         type: "GET",
         data: {
             name: name
         },
         success: function (data) {
-            const response = JSON.parse(data);
-            if (response.response === "OK") {
-                $('#adding').val('');
-                itemlist.unshift(element);
-                ShowData(itemlist);
-            } else if (response.error === "warning: item already listed") {
-                $('#adding').val('');
-                console.log(data);
-            } else {
-                console.log(response.error);
-                ShowError(response.error);
-            }
-        },
-        error: function (err) {
-            console.log(err);
-        }
-    });
-}
-
-function BuyResumeRemove(index, action) {
-    // Define action
-    if (!action)
-        action = itemlist[index].listed ? "buy" : "res";
-    const url = "api/" + action;
-
-    $.ajax({
-        url: url,
-        type: "GET",
-        data: {
-            name: itemlist[index].name
-        },
-        success: function (data) {
-            const response = JSON.parse(data);
-            if (response.response === "OK") {
-                // Preserve the element at the top of the switched list.
-                // Update executed without requiring data retrieval from server.
-                var els = itemlist.splice(index, 1);
-                if (action !== "del") {
-                    els[0].listed = !els[0].listed;
-                    itemlist.unshift(els[0]);
-                }
-                ShowData(itemlist);
-            } else if (response.error) {
-                console.log(response.error);
-                ShowError(response.error);
-            }
+            HandleResponse(data);
         },
         error: function (err) {
             console.log(err);
@@ -131,7 +101,7 @@ function BuyResumeRemove(index, action) {
  * UTILITIES
  *************/
 
-function CutString(str) {
+function CutString (str) {
     if (str !== undefined) {
         if (str.length >= MAXLEN)
             return (str.slice(0, MAXSTR) + "...");
@@ -139,7 +109,7 @@ function CutString(str) {
     }
 }
 
-function ShowError(text) {
+function ShowError (text) {
     $('#mymodal p').html(text);
     $('#mymodal').modal('show');
 }

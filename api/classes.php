@@ -38,12 +38,18 @@ class Filer
         return $content;
     }
 
-    public static function Add(string $name): string
+    public static function Add(string $name): array
     {
         $content = self::ReadElements();
+        $exist = Filer::Find($content, $name);
         // Duplicate check
-        if (Filer::Find($content, $name))
-            throw new Exception("warning: item already listed");
+        if ($exist)
+        {
+            if ($exist->listed)
+                throw new Exception("warning: item already listed");
+            else
+                return self::Shift($name, false);
+        }
         $el = new stdClass;
         $el->name = $name;
         $el->listed = true;
@@ -52,11 +58,12 @@ class Filer
     }
 
     /* Buy an item ($buy = true) or resume it from backup list ($buy = false) */
-    public static function Shift(string $name, bool $buy): string
+    public static function Shift(string $name, bool $buy): array
     {
         $content = self::ReadElements();
         // Duplicate check
-        if ($element = Filer::Find($content, $name, $buy))
+        $element = Filer::Find($content, $name);
+        if ($element->listed == $buy)
         {
             $i = array_search($element, $content);
             array_splice($content, $i, 1);
@@ -68,11 +75,11 @@ class Filer
             throw new Exception("error: item not found");
     }
 
-    public static function Remove(string $name): string
+    public static function Remove(string $name): array
     {
         $content = self::ReadElements();
-        // Duplicate check
-        if ($element = Filer::Find($content, $name, false))
+        $element = Filer::Find($content, $name);
+        if ($element !== null && !$element->listed)
         {
             $i = array_search($element, $content);
             array_splice($content, $i, 1);
@@ -82,30 +89,30 @@ class Filer
             throw new Exception("error: item not found");
     }
 
-    public static function Find(array $content, string $name, bool $listed = true): ?Object
+    public static function Find(array $content, string $name): ?Object
     {
-        foreach ($content as &$element)
+        foreach ($content as $element)
         {
-            if (strtolower($name) == strtolower($element->name) && $element->listed == $listed)
+            if (strtolower($name) == strtolower($element->name))
                 return $element;
         }
         return null;
     }
 
-    public static function WriteAll($myarray): string
+    public static function WriteAll($myarray): array
     {
         if (!is_array($myarray))
             throw new Exception("error: array expected");
-        return Filer::WriteAllJson(json_encode($myarray));
+        Filer::WriteAllJson(json_encode($myarray));
+        return $myarray;
     }
 
-    public static function WriteAllJson(string $jsonstring): string
+    public static function WriteAllJson(string $jsonstring)
     {
         $myfile = fopen(MYLIST, "w") or die("error opening file");
         if (!fwrite($myfile, $jsonstring))
             throw new Exception("error writing file");
         fclose($myfile);
-        return $jsonstring;
     }
 }
 
@@ -118,12 +125,61 @@ class CookieCheck
     }
 }
 
-class Responder
+class Response
 {
     public $error = NULL;
     public $response = NULL;
     public function toJSON()
     {
         return json_encode($this);
+    }
+}
+
+class SetRequestHandler
+{
+    public static function CheckAndReply($post, $action)
+    {
+        $res = new Response;
+        header('Content-Type: application/json; charset=utf-8');
+
+        if($post)
+        {
+            if (isset($post['name']))
+            {
+                $name = $post['name'];
+                if ($name == "")
+                    $res->error = "error: empty item name";
+            }
+            else
+                $res->error = "error: missing parameter: name";
+        }
+
+        if (!$res->error)
+        {
+            try
+            {
+                switch ($action)
+                {
+                    case 'add':
+                        $res->response = Filer::Add(trim($name));
+                        break;
+                    case 'buy':
+                        $res->response = Filer::Shift($name, true);
+                        break;
+                    case 'del':
+                        $res->response = Filer::Remove($name);
+                        break;
+                    case 'get':
+                        $res->response = Filer::ReadElements();
+                        break;
+                }
+            }
+            catch (Exception $ex)
+            {
+                $res->error = $ex->getMessage();
+            }
+        }
+
+        echo $res->toJSON();
     }
 }
