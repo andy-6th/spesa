@@ -11,3 +11,5 @@ RewriteRule .* - [L,R=404]
 # Return 404 for a given address
 RewriteRule ^api/classes - [L,R=404]
 RewriteRule ^api/(.*).json - [L,R=404]
+RewriteRule ^LICENSE - [L,R=404]
+RewriteRule ^README.md - [L,R=404]
