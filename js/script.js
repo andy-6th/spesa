@@ -53,6 +53,7 @@ function HandleResponse (data) {
         }
     } else if (data.response) {
         RefreshData(data.response);
+        $('#adding').val('');
     }
 }
 
