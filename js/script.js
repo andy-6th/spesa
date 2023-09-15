@@ -53,7 +53,6 @@ function HandleResponse (data) {
         }
     } else if (data.response) {
         RefreshData(data.response);
-        $('#adding').val('');
     }
 }
 
@@ -71,6 +70,7 @@ function AddItem () {
         return;
     url = "api/add";
     CallAPI(url, name);
+    $('#adding').val('');
 }
 
 function BuyRemove (index, action) {
